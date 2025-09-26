@@ -15,21 +15,24 @@ const MeetingCompanionUI = ( ) => {
   const [isProcessed, setIsProcessed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [Summary, setSummary] = useState([]);
+  const [text, setText] = useState('');
 
     const loadDetector =  async() =>{
       if (navigator.userActivation.isActive) {
         const detector = await LanguageDetector.create();
-      //  const someUserText = 'Hallo und herzlich willkommen!';
-       const results = await detector.detect("hello how are you");
-       for (const result of results) {
-         // Show the full list of potential languages with their likelihood, ranked
-         // from most likely to least likely. In practice, one would pick the top
-         // language(s) that cross a high enough threshold.
+       const results = await detector.detect(text.trim());
+       
          setSummary(results);
-         console.log(result.detectedLanguage, result.confidence.toFixed(2)*100, '%');
-       }
+         console.log(languageTagToHumanReadable(results[0].detectedLanguage,'en'),'Confidence : ',results[0].confidence.toFixed(1)*100, '%');
+       
     }
   }
+   const languageTagToHumanReadable = (languageTag, targetLanguage) => {
+    const displayNames = new Intl.DisplayNames([targetLanguage], {
+      type: 'language',
+    });
+    return displayNames.of(languageTag);
+  };
   const handleProcess = () => {
     setIsLoading(true);
     setIsProcessed(false);
@@ -75,6 +78,8 @@ const MeetingCompanionUI = ( ) => {
             <div className="bg-white/5 border border-white/10 rounded-2xl shadow-2xl p-6 backdrop-blur-xl">
               <h2 className="text-2xl font-bold mb-4 flex items-center gap-3"><span className="bg-blue-500/20 text-blue-300 text-sm font-bold px-3 py-1 rounded-full">1</span> Paste or Upload Transcript</h2>
               <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
                 placeholder="Paste your meeting transcript here..."
                 className="w-full min-h-[180px] bg-gray-800/50 border border-white/10 rounded-lg p-4 focus:ring-2 focus:ring-blue-400 focus:outline-none transition-all duration-300"
               ></textarea>
@@ -98,7 +103,7 @@ const MeetingCompanionUI = ( ) => {
                 {/* Summary */}
                 <div>
                   <h3 className="font-semibold text-lg text-blue-300 mb-2">Summary</h3>
-                  <p className="text-gray-300 leading-relaxed">The team discussed the Q4 marketing strategy, focusing on digital campaigns and social media engagement. A follow-up meeting is scheduled to finalize campaign specifics.</p>
+                  <p className="text-gray-300 leading-relaxed">Language: {languageTagToHumanReadable(Summary[0].detectedLanguage,'en')}, Confidence: {Summary[0].confidence.toFixed(1)*100} %</p>
                 </div>
                 {/* Action Items */}
                 <div>
